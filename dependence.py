@@ -6,7 +6,7 @@ class Dependence(object):
 
     def to_string(self):
         print('<groupId>{}</groupId>\n<artifactId>{}</artifactId>\n<version>{}</version>\n'
-              .format(self.artifact_id, self.group_id, self.version))
+              .format(self.group_id, self.artifact_id, self.version))
 
     def __eq__(self, other):
         if self.artifact_id == other.artifact_id and \

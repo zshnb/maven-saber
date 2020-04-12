@@ -2,16 +2,16 @@ from parser import Parser
 import argparse
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='search maven dependence')
-    parser.add_argument('-artifact', metavar='pattern', required=True,
-                        dest='patterns', action='append',
-                        help='text pattern to search for')
+    args_parser = argparse.ArgumentParser(description='maven dependence toolkit')
+    args_parser.add_argument('-artifact', metavar='artifactId', required=False,
+                             dest='artifactId', action='store',
+                             help='text maven dependence artifactId to search for')
+    args_parser.add_argument('-a', dest='is_accurate', action='store_true',
+                             help='whether pattern artifactId accurately')
 
-    args = parser.parse_args()
-    print(args)
+    args = args_parser.parse_args()
 
-
-    # parser = Parser()
-    # dependencies = parser.parse('fastjson')
-    # for item in dependencies:
-    #     item.to_string()
+    dependence_parser = Parser()
+    dependencies = dependence_parser.parse(args.artifactId)
+    for item in dependencies:
+        item.to_string()
