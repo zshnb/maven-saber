@@ -11,6 +11,6 @@
     参数名|描述
     -----|---
     -artifact|依赖的artifactId
-    -a|是否精确匹配artifactId
+    -ac|是否精确匹配artifactId
     
   
