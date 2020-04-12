@@ -10,12 +10,15 @@ if __name__ == '__main__':
                              help='whether pattern artifactId accurately')
     args_parser.add_argument('-asc', dest='is_asc', action='store_true',
                              help='sort dependence by version asc')
+    args_parser.add_argument('-limit', metavar='show dependencies size', dest='limit',
+                             help='show how many dependencies you want copy')
 
     args = args_parser.parse_args()
 
     dependence_parser = Parser()
     dependencies = dependence_parser.parse(keyword=args.artifactId,
                                            accurate=args.is_accurate,
-                                           is_asc=args.is_asc)
+                                           is_asc=args.is_asc,
+                                           limit=args.limit)
     for item in dependencies:
         item.to_string()

@@ -14,8 +14,8 @@ class Parser(object):
         repo_id = kwargs.get('repo_id', 'all')
         accurate = kwargs['accurate']
         is_asc = kwargs.get('is_asc', False)
+        limit = kwargs['limit'] or 10
         proxy = get_proxy()['proxy']
-        dependencies = set()
         response = requests.get((self.url.format(keyword, repo_id)), proxies={"http": "http://{}".format(proxy)})
         if response.status_code == 200:
             results = json.loads(response.text)['object']
@@ -26,4 +26,4 @@ class Parser(object):
                 dependencies = set(
                     map(lambda item: Dependence(item['artifactId'], item['groupId'], item['version']), results))
 
-            return sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
+            return sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)[:limit]
