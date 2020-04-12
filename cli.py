@@ -12,6 +12,6 @@ if __name__ == '__main__':
     args = args_parser.parse_args()
 
     dependence_parser = Parser()
-    dependencies = dependence_parser.parse(args.artifactId)
+    dependencies = dependence_parser.parse(keyword=args.artifactId, accurate=args.is_accurate)
     for item in dependencies:
         item.to_string()
