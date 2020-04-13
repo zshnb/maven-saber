@@ -14,5 +14,6 @@
     -ac|是否精确匹配artifactId|是|否|模糊
     -asc|按照version的排序顺序|是|降序
     -limit|返回依赖数量|是|10
+    -group|依赖的groupId|是|空
     
   
