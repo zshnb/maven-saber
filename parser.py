@@ -11,12 +11,12 @@ class Parser(object):
 
     def parse(self, **kwargs):
         artifact_id = kwargs['artifactId']
-        group_id = kwargs.get('groupId', '')
-        repo_id = kwargs.get('repo_id', 'all')
+        group_id = kwargs.get('groupId') or ''
+        repo_id = kwargs.get('repo_id') or 'all'
         accurate = kwargs['accurate']
         is_asc = kwargs.get('is_asc', False)
         limit = kwargs['limit'] or 10
-        proxy = get_proxy()['proxy']
+        proxy = get_proxy()
         response = requests.get((self.url.format(group_id, repo_id, artifact_id)),
                                 proxies={"http": "http://{}".format(proxy)})
         if response.status_code == 200:
