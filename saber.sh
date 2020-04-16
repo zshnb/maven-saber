@@ -1,3 +1,7 @@
-#!/usr/sh
-artifact_id=$1
-python cli.py
+#!/bin/sh
+if [ $# = 1 ]
+then
+  python cli.py
+else
+  python cli.py $*
+fi

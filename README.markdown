@@ -1,14 +1,14 @@
 ### maven依赖命令行工具箱
 - 命令行搜索maven依赖，可直接复制搜索结果到pom.xml里。
-  - 命令格式：`python cli.py -artifact artifactId [-group groupId] [-ac] [--asc] [-limit 5]`
+  - 命令格式：`./saber.sh -artifact artifactId [-repo aliyun] [-ac] [-asc] [-limit 5]`
   - 命令常用参数：
     参数名|描述|是否可选|默认值
     -----|---|-------|----
     -artifact|依赖的artifactId|否|
     -ac|是否精确匹配artifactId|是|否|模糊
     -asc|按照version的排序顺序|是|降序
-    -limit|返回依赖数量|是|10
-    -group|依赖的groupId|是|空
+    -limit|返回依赖数量|是|5
+    -repo|查询依赖的依赖仓库|是|sonatype
     
   - 提示：可以使用下面的代理池，以避免本机ip查找过于频繁而被拉黑名单
       ```shell script
