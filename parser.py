@@ -19,11 +19,13 @@ class Parser(object):
                                           artifact_id=kwargs['artifact_id'],
                                           accurate=kwargs['accurate'],
                                           is_asc=kwargs['is_asc'],
+                                          group_id=kwargs['group_id'],
                                           limit=kwargs['limit'] or 5)
         return dependencies
 
     def aliyun(self, proxy, **kwargs):
         artifact_id = kwargs['artifactId']
+        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
         is_asc = kwargs['is_asc']
         limit = kwargs['limit'] or 5
@@ -39,6 +41,8 @@ class Parser(object):
         else:
             dependencies = set(map(lambda item: Dependence(item['artifactId'], item['groupId'], item['version']),
                                    json.loads(response.text)['object']))
+        if group_id is not None:
+            dependencies = [d for d in dependencies if d.group_id == group_id]
 
         dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
         if len(dependencies) < limit:
@@ -48,6 +52,7 @@ class Parser(object):
 
     def sonatype(self, proxy, **kwargs):
         artifact_id = kwargs['artifact_id']
+        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
         is_asc = kwargs['is_asc']
         limit = kwargs['limit'] or 5
@@ -62,6 +67,9 @@ class Parser(object):
         else:
             dependencies = set(map(lambda item: Dependence(item['a'], item['g'], item['latestVersion']),
                                    json.loads(response.text)['response']['docs']))
+
+        if group_id is not None:
+            dependencies = [d for d in dependencies if d.group_id == group_id]
 
         dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
         if len(dependencies) < limit:

@@ -10,11 +10,14 @@ if __name__ == '__main__':
                              help='whether pattern artifactId accurately')
     args_parser.add_argument('-asc', dest='is_asc', action='store_true',
                              help='sort dependence by version asc')
-    args_parser.add_argument('-limit', metavar='limit size', dest='limit',
+    args_parser.add_argument('-limit', metavar='size', dest='limit',
                              help='show how many dependencies you want copy')
-    args_parser.add_argument('-repo', metavar='repository name', required=False,
+    args_parser.add_argument('-repo', metavar='repository', required=False,
                              dest='repo_id', action='store', choices={'aliyun', 'sonatype'},
                              help='which repository do you want to search for dependence')
+    args_parser.add_argument('-group', metavar='groupId', required=False,
+                             dest='group_id', action='store',
+                             help='dependence\'s group id')
 
     args = args_parser.parse_args()
 
@@ -22,6 +25,7 @@ if __name__ == '__main__':
     dependencies = dependence_parser.parse(artifact_id=args.artifact_id,
                                            repo_id=args.repo_id,
                                            accurate=args.is_accurate,
+                                           group_id=args.group_id,
                                            is_asc=args.is_asc,
                                            limit=args.limit)
     for item in dependencies:
