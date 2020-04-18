@@ -15,20 +15,24 @@ class Parser(object):
     def parse(self, **kwargs):
         repo_id = kwargs.get('repo_id') or 'sonatype'
         proxy = get_proxy()
-        dependencies = self.repo[repo_id](proxy,
-                                          artifact_id=kwargs['artifact_id'],
-                                          accurate=kwargs['accurate'],
-                                          is_asc=kwargs['is_asc'],
-                                          group_id=kwargs['group_id'],
-                                          limit=kwargs['limit'] or 5)
-        return dependencies
+        dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
+                                          accurate=kwargs['accurate'])
+        group_id = kwargs['group_id']
+        is_asc = kwargs['is_asc']
+        limit = kwargs['limit'] or 5
+
+        if group_id is not None:
+            dependencies = [d for d in dependencies if d.group_id == group_id]
+
+        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
+        if len(dependencies) < limit:
+            return dependencies
+        else:
+            return dependencies[:limit]
 
     def aliyun(self, proxy, **kwargs):
         artifact_id = kwargs['artifactId']
-        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
-        is_asc = kwargs['is_asc']
-        limit = kwargs['limit'] or 5
         url = 'https://maven.aliyun.com/artifact/aliyunMaven/searchArtifactByGav?_input_charset=utf-8&groupId' \
               '=&repoId=all&artifactId={}&version='
         response = requests.get((url.format(artifact_id)),
@@ -41,21 +45,11 @@ class Parser(object):
         else:
             dependencies = set(map(lambda item: Dependence(item['artifactId'], item['groupId'], item['version']),
                                    json.loads(response.text)['object']))
-        if group_id is not None:
-            dependencies = [d for d in dependencies if d.group_id == group_id]
-
-        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
-        if len(dependencies) < limit:
-            return dependencies
-        else:
-            return dependencies[:limit]
+        return dependencies
 
     def sonatype(self, proxy, **kwargs):
         artifact_id = kwargs['artifact_id']
-        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
-        is_asc = kwargs['is_asc']
-        limit = kwargs['limit'] or 5
         url = 'https://search.maven.org/solrsearch/select?q={}&start=0&rows=20'
         response = requests.get((url.format(artifact_id)),
                                 proxies={"http": "http://{}".format(proxy)})
@@ -68,11 +62,5 @@ class Parser(object):
             dependencies = set(map(lambda item: Dependence(item['a'], item['g'], item['latestVersion']),
                                    json.loads(response.text)['response']['docs']))
 
-        if group_id is not None:
-            dependencies = [d for d in dependencies if d.group_id == group_id]
+        return dependencies
 
-        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
-        if len(dependencies) < limit:
-            return dependencies
-        else:
-            return dependencies[:limit]

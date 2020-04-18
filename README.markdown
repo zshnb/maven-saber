@@ -20,9 +20,9 @@
 -repo|查询依赖的依赖仓库|是|sonatype
 
 - 提示：可以使用下面的代理池，以避免本机ip查找过于频繁而被拉黑名单
-  ```shell script
-  docker pull jhao104/proxy_pool
-  docker run --env db_type=REDIS --env db_host=x.x.x.x --env db_port=6379 --env db_password=pwd_str -p 5010:5010 jhao104/proxy_pool
-  ```
-  等待容器运行成功，访问 127.0.0.1:5010/get 验证，查看是否能访问。
+```shell script
+docker pull jhao104/proxy_pool
+docker run --env db_type=REDIS --env db_host=x.x.x.x --env db_port=6379 --env db_password=pwd_str -p 5010:5010 jhao104/proxy_pool
+```
+等待容器运行成功，访问 127.0.0.1:5010/get 验证，查看是否能访问。
 
