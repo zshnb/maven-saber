@@ -2,6 +2,7 @@ import requests
 import json
 from proxy_tool import get_proxy
 from dependence import Dependence
+from bs4 import BeautifulSoup
 
 
 class Parser(object):
@@ -11,24 +12,29 @@ class Parser(object):
         self.repo = dict()
         self.repo['aliyun'] = self.aliyun
         self.repo['sonatype'] = self.sonatype
+        self.repo['mvn'] = self.mvn_central
 
     def parse(self, **kwargs):
         repo_id = kwargs.get('repo_id') or 'sonatype'
         proxy = get_proxy()
-        dependencies = self.repo[repo_id](proxy,
-                                          artifact_id=kwargs['artifact_id'],
-                                          accurate=kwargs['accurate'],
-                                          is_asc=kwargs['is_asc'],
-                                          group_id=kwargs['group_id'],
-                                          limit=kwargs['limit'] or 5)
-        return dependencies
+        dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
+                                          accurate=kwargs['accurate'])
+        group_id = kwargs['group_id']
+        is_asc = kwargs['is_asc']
+        limit = kwargs['limit'] or 5
+
+        if group_id is not None:
+            dependencies = [d for d in dependencies if d.group_id == group_id]
+
+        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
+        if len(dependencies) < limit:
+            return dependencies
+        else:
+            return dependencies[:limit]
 
     def aliyun(self, proxy, **kwargs):
         artifact_id = kwargs['artifactId']
-        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
-        is_asc = kwargs['is_asc']
-        limit = kwargs['limit'] or 5
         url = 'https://maven.aliyun.com/artifact/aliyunMaven/searchArtifactByGav?_input_charset=utf-8&groupId' \
               '=&repoId=all&artifactId={}&version='
         response = requests.get((url.format(artifact_id)),
@@ -41,21 +47,11 @@ class Parser(object):
         else:
             dependencies = set(map(lambda item: Dependence(item['artifactId'], item['groupId'], item['version']),
                                    json.loads(response.text)['object']))
-        if group_id is not None:
-            dependencies = [d for d in dependencies if d.group_id == group_id]
-
-        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
-        if len(dependencies) < limit:
-            return dependencies
-        else:
-            return dependencies[:limit]
+        return dependencies
 
     def sonatype(self, proxy, **kwargs):
         artifact_id = kwargs['artifact_id']
-        group_id = kwargs['group_id']
         accurate = kwargs['accurate']
-        is_asc = kwargs['is_asc']
-        limit = kwargs['limit'] or 5
         url = 'https://search.maven.org/solrsearch/select?q={}&start=0&rows=20'
         response = requests.get((url.format(artifact_id)),
                                 proxies={"http": "http://{}".format(proxy)})
@@ -68,11 +64,24 @@ class Parser(object):
             dependencies = set(map(lambda item: Dependence(item['a'], item['g'], item['latestVersion']),
                                    json.loads(response.text)['response']['docs']))
 
-        if group_id is not None:
-            dependencies = [d for d in dependencies if d.group_id == group_id]
+        return dependencies
 
-        dependencies = sorted(dependencies, key=lambda d: d.version, reverse=not is_asc)
-        if len(dependencies) < limit:
-            return dependencies
-        else:
-            return dependencies[:limit]
+    def mvn_central(self, proxy, **kwargs):
+        artifact_id = kwargs['artifact_id']
+        url = 'https://mvnrepository.com/search?q={}'
+        response = requests.get((url.format(artifact_id)),
+                                proxies={"http": "http://{}".format(proxy)})
+        dependencies = set()
+        soup = BeautifulSoup(response.text, 'lxml')
+        div_ims = soup.find_all(class_='im')
+        div_im = div_ims[0]
+        detail_url = div_im.find(name='a')['href']
+        group_id = detail_url.split('/')[2]
+        response = requests.get(('https://mvnrepository.com{}'.format(detail_url)),
+                                proxies={"http": "http://{}".format(proxy)})
+        soup = BeautifulSoup(response.text, 'lxml')
+        table = soup.find_all(class_='versions')[0]
+        trs = table.select('tr')[1:]
+        trs = sorted(trs, key=lambda tr: int(tr.find(class_='rb').find_previous_sibling().string), reverse=True)
+        dependencies = set(map(lambda tr: Dependence(artifact_id, group_id, tr.find(class_='vbtn').string), trs))
+        return dependencies

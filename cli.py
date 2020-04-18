@@ -13,7 +13,7 @@ if __name__ == '__main__':
     args_parser.add_argument('-limit', metavar='size', dest='limit',
                              help='show how many dependencies you want copy')
     args_parser.add_argument('-repo', metavar='repository', required=False,
-                             dest='repo_id', action='store', choices={'aliyun', 'sonatype'},
+                             dest='repo_id', action='store', choices={'aliyun', 'sonatype', 'mvn'},
                              help='which repository do you want to search for dependence')
     args_parser.add_argument('-group', metavar='groupId', required=False,
                              dest='group_id', action='store',

@@ -19,10 +19,15 @@
 -limit|返回依赖数量|是|5
 -repo|查询依赖的依赖仓库|是|sonatype
 
-- 提示：可以使用下面的代理池，以避免本机ip查找过于频繁而被拉黑名单
-  ```shell script
-  docker pull jhao104/proxy_pool
-  docker run --env db_type=REDIS --env db_host=x.x.x.x --env db_port=6379 --env db_password=pwd_str -p 5010:5010 jhao104/proxy_pool
-  ```
-  等待容器运行成功，访问 127.0.0.1:5010/get 验证，查看是否能访问。
+目前内置仓库
+- aliyun: 阿里云仓库，依赖数量多，但很杂，很多依赖都不是第一方的，都是二次封装后上传的，一般不建议使用，除非下面2个仓库找不到。
+- sonatype: 开源的maven仓库，依赖数量中等，但一般能找到官方的最新版本依赖，工具默认使用该仓库。
+- mvn: maven中央仓库，依赖数量最多最全，同时如果使用该仓库，搜索结果默认开启精确匹配，且返回结果按照依赖版本降序，如果想查找旧版本依赖，建议使用
+
+提示：可以使用下面的代理池，以避免本机ip查找过于频繁而被拉黑名单
+```shell script
+docker pull jhao104/proxy_pool
+docker run --env db_type=REDIS --env db_host=x.x.x.x --env db_port=6379 --env db_password=pwd_str -p 5010:5010 jhao104/proxy_pool
+```
+等待容器运行成功，访问 127.0.0.1:5010/get 验证，查看是否能访问。
 
