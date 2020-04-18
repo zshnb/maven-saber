@@ -2,6 +2,7 @@ import requests
 import json
 from proxy_tool import get_proxy
 from dependence import Dependence
+from bs4 import BeautifulSoup
 
 
 class Parser(object):
@@ -11,6 +12,7 @@ class Parser(object):
         self.repo = dict()
         self.repo['aliyun'] = self.aliyun
         self.repo['sonatype'] = self.sonatype
+        self.repo['mvn'] = self.mvn_central
 
     def parse(self, **kwargs):
         repo_id = kwargs.get('repo_id') or 'sonatype'
@@ -64,3 +66,22 @@ class Parser(object):
 
         return dependencies
 
+    def mvn_central(self, proxy, **kwargs):
+        artifact_id = kwargs['artifact_id']
+        url = 'https://mvnrepository.com/search?q={}'
+        response = requests.get((url.format(artifact_id)),
+                                proxies={"http": "http://{}".format(proxy)})
+        dependencies = set()
+        soup = BeautifulSoup(response.text, 'lxml')
+        div_ims = soup.find_all(class_='im')
+        div_im = div_ims[0]
+        detail_url = div_im.find(name='a')['href']
+        group_id = detail_url.split('/')[2]
+        response = requests.get(('https://mvnrepository.com{}'.format(detail_url)),
+                                proxies={"http": "http://{}".format(proxy)})
+        soup = BeautifulSoup(response.text, 'lxml')
+        table = soup.find_all(class_='versions')[0]
+        trs = table.select('tr')[1:]
+        trs = sorted(trs, key=lambda tr: int(tr.find(class_='rb').find_previous_sibling().string), reverse=True)
+        dependencies = set(map(lambda tr: Dependence(artifact_id, group_id, tr.find(class_='vbtn').string), trs))
+        return dependencies
