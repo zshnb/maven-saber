@@ -13,17 +13,16 @@ class Parser(object):
         self.repo['sonatype'] = self.sonatype
         self.repo['mvn'] = self.mvn_central
         self.repo['nexus'] = self.nexus
-        for key, value in nexus_repo.items():
-            self.repo[key] = value
 
     def parse(self, **kwargs):
         repo_id = kwargs.get('repo_id') or 'sonatype'
         proxy = get_proxy()
         if repo_id in nexus_repo.keys():
-            dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
+            dependencies = self.repo['nexus'](proxy, nexus_repo[repo_id], artifact_id=kwargs['artifact_id'],
                                               accurate=kwargs['accurate'])
         else:
-            dependencies = self.repo['nexus'](proxy, )
+            dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
+                                              accurate=kwargs['accurate'])
         group_id = kwargs['group_id']
         is_asc = kwargs['is_asc']
         limit = kwargs['limit'] or 5

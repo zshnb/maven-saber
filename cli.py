@@ -1,7 +1,9 @@
 from parser import Parser
+from nexus_config import nexus_repo
 import argparse
 
 if __name__ == '__main__':
+    private_repo_id = nexus_repo.keys()
     args_parser = argparse.ArgumentParser(description='maven dependence toolkit')
     args_parser.add_argument('-artifact', metavar='artifactId', required=True,
                              dest='artifact_id', action='store',
@@ -13,7 +15,7 @@ if __name__ == '__main__':
     args_parser.add_argument('-limit', metavar='size', dest='limit',
                              help='show how many dependencies you want copy')
     args_parser.add_argument('-repo', metavar='repository', required=False,
-                             dest='repo_id', action='store', choices={'aliyun', 'sonatype', 'mvn'},
+                             dest='repo_id', action='store', choices=['aliyun', 'sonatype', 'mvn'] + (list(private_repo_id)),
                              help='which repository do you want to search for dependence')
     args_parser.add_argument('-group', metavar='groupId', required=False,
                              dest='group_id', action='store',
