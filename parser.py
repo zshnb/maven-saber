@@ -25,7 +25,7 @@ class Parser(object):
                                               accurate=kwargs['accurate'])
         group_id = kwargs['group_id']
         is_asc = kwargs['is_asc']
-        limit = kwargs['limit'] or 5
+        limit = int(kwargs['limit'] or 5)
 
         if group_id is not None:
             dependencies = [d for d in dependencies if d.group_id == group_id]
