@@ -3,22 +3,27 @@ import json
 from proxy_tool import get_proxy
 from dependence import Dependence
 from bs4 import BeautifulSoup
+from nexus_config import nexus_repo
 
 
 class Parser(object):
     def __init__(self):
-        self.url = 'https://maven.aliyun.com/artifact/aliyunMaven/searchArtifactByGav?_input_charset=utf-8&groupId' \
-                   '={}&repoId={}&artifactId={}&version='
         self.repo = dict()
         self.repo['aliyun'] = self.aliyun
         self.repo['sonatype'] = self.sonatype
         self.repo['mvn'] = self.mvn_central
+        self.repo['nexus'] = self.nexus
+        for key, value in nexus_repo.items():
+            self.repo[key] = value
 
     def parse(self, **kwargs):
         repo_id = kwargs.get('repo_id') or 'sonatype'
         proxy = get_proxy()
-        dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
-                                          accurate=kwargs['accurate'])
+        if repo_id in nexus_repo.keys():
+            dependencies = self.repo[repo_id](proxy, artifact_id=kwargs['artifact_id'],
+                                              accurate=kwargs['accurate'])
+        else:
+            dependencies = self.repo['nexus'](proxy, )
         group_id = kwargs['group_id']
         is_asc = kwargs['is_asc']
         limit = kwargs['limit'] or 5
@@ -84,4 +89,22 @@ class Parser(object):
         trs = table.select('tr')[1:]
         trs = sorted(trs, key=lambda tr: int(tr.find(class_='rb').find_previous_sibling().string), reverse=True)
         dependencies = set(map(lambda tr: Dependence(artifact_id, group_id, tr.find(class_='vbtn').string), trs))
+        return dependencies
+
+    def nexus(self, proxy, url, **kwargs):
+        artifact_id = kwargs['artifact_id']
+        accurate = kwargs['accurate']
+        response = requests.post(url,
+                                 data='{"action": "coreui_Search", "method": "read", "type": "rpc", "tid": 1, "data": [{"page": 1,"start":0,"limit":300,"filter":[{"property":"keyword","value":"%s"}]}]}' % artifact_id,
+                                 headers={'Content-Type': 'application/json'},
+                                 proxies={'http': 'http://{}'.format(proxy)})
+        dependencies = set()
+        if accurate:
+            dependencies = set(map(lambda item: Dependence(item['name'], item['group'], item['version']),
+                                   filter(lambda item: item['a'] == artifact_id,
+                                          json.loads(response.text)['result']['data'])))
+        else:
+            dependencies = set(map(lambda item: Dependence(item['name'], item['group'], item['version']),
+                                   json.loads(response.text)['result']['data']))
+
         return dependencies
